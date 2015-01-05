@@ -15,10 +15,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 'use strict';
 
 var cluster = require('cluster'),
+    os = require('os'),
     _ = require('underscore');
 
 
-var DEFAULT_NUM_WORKERS = 1;
+var DEFAULT_NUM_WORKERS = os.cpus().length;
 var DEFAULT_LOGGER = {
     debug: console.log.bind(console),
     info:  console.log.bind(console),

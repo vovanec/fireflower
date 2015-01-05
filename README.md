@@ -1,5 +1,3 @@
-## Multinode
-
 Simple multi-worker framework. Built as a wrapper around standard cluster module.
 Example usage:
 

@@ -1,6 +1,6 @@
 {
   "name": "fireflower",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Multi-worker framework. Built on top of standard cluster module.",
   "main": "fireflower.js",
   "scripts": {
