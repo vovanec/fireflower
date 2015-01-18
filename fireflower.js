@@ -19,8 +19,11 @@ var cluster = require('cluster'),
     _ = require('underscore');
 
 
-var DEFAULT_NUM_WORKERS = os.cpus().length;
+var DEF_NUM_WORKERS = os.cpus().length;
+var DEF_WORKER_RESTART_DELAY = 1000;
+
 var DEFAULT_LOGGER = {
+    trace: console.log.bind(console),
     debug: console.log.bind(console),
     info:  console.log.bind(console),
     warn:  console.log.bind(console),
@@ -28,14 +31,15 @@ var DEFAULT_LOGGER = {
 };
 
 
-var master = function (ctx, numWorkers) {
+var master = function (ctx, numWorkers, workerRestartDelay) {
 
     var log = ctx.log || DEFAULT_LOGGER;
 
     log.info('Master process is coming up.');
 
     if (_.isFunction(ctx.init)) {
-        ctx.init();
+        ctx.init({numWorkers: numWorkers,
+                  workerRestartDelay: workerRestartDelay});
     }
 
     cluster.on('online', function (worker) {
@@ -44,8 +48,14 @@ var master = function (ctx, numWorkers) {
         log.debug('Worker with PID %s exited with code %s on signal %s.',
             worker.process.pid, code, signal);
         if (!worker.suicide) {
-            log.info('Starting the new one.');
-            cluster.fork();
+            var restartDelay = workerRestartDelay + _.random(-workerRestartDelay / 2,
+                    workerRestartDelay / 2);
+            log.debug('Will restart in %s ms', restartDelay);
+            setTimeout(function () {
+                log.info('Starting the new one worker.');
+                cluster.fork();
+            }, restartDelay);
+
         }
     }).on('disconnect', function (worker) {
         log.info('The worker with PID %s is disconnected.',
@@ -114,14 +124,11 @@ var worker = function (ctx) {
 };
 
 
-exports.runServer = function (masterCtx, workerCtx, numWorkers) {
-
-    if (!numWorkers) {
-        numWorkers = DEFAULT_NUM_WORKERS;
-    }
+exports.runServer = function (masterCtx, workerCtx, numWorkers, workerRestartDelay) {
 
     if (cluster.isMaster) {
-        master(masterCtx, numWorkers);
+        master(masterCtx, numWorkers || DEF_NUM_WORKERS,
+               workerRestartDelay || DEF_WORKER_RESTART_DELAY);
     } else {
         worker(workerCtx);
     }
