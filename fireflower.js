@@ -97,7 +97,7 @@ var worker = function (ctx) {
     }
 
     var onSignal = function (signum) {
-        log.info('Received signal ', signum, ' Exiting.');
+        log.info('Received signal %s Exiting.', signum);
 
         if (_.isFunction(ctx.onStop)) {
             ctx.onStop();
